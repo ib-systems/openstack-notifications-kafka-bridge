@@ -53,4 +53,11 @@ async def handle_nova_event(data, logger: Logger, msg: RabbitMessage):
 
 @app.on_startup
 async def on_start():
+    # Use case to create subscriber programmatically.
+
+    # nova_sub = rabbit_broker.subscriber(queue=nova_queue,
+    #    exchange=exch, no_ack=False
+    # )
+    # nova_sub(handle_nova_event)
+    # rabbit_broker.setup_subscriber(subscriber=nova_sub)
     await kafka_broker.start()
