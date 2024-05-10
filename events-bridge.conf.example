@@ -1,0 +1,11 @@
+[kafka]
+bootstrap_servers=127.0.0.1:9092
+
+[amqp]
+host=127.0.0.1
+port=5672
+vhost=nova_cell1
+username=
+password=
+nova_exchange_name=nova
+consumer_queue_name=
