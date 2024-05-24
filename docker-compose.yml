@@ -1,0 +1,6 @@
+services:
+  onkb:
+    image: onkb
+    restart: always
+    volumes:
+      - ./events-bridge.conf:/home/os-kafka-bridge/events-bridge.conf
