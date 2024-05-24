@@ -1,2 +1,2 @@
 #!/bin/bash
-faststream run main:app --reload
+faststream run main:app --reload "$@"

@@ -1,4 +1,5 @@
 import json
+import argparse
 import configparser
 from faststream import FastStream, Logger
 from faststream.rabbit import (
@@ -11,8 +12,12 @@ from faststream.rabbit import (
 from faststream.confluent import KafkaBroker
 
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--config-file", help="Config file path", default="events-bridge.conf")
+known_args, extra = parser.parse_known_args()
+
 config = configparser.ConfigParser()
-config.read("events-bridge.conf")
+config.read(known_args.config_file)
 kafka_conf = config["kafka"]
 amqp_conf = config["amqp"]
 kafka_broker = KafkaBroker(kafka_conf["bootstrap_servers"])
@@ -25,7 +30,7 @@ rabbit_broker = RabbitBroker(
     virtualhost=amqp_conf["vhost"],
 )
 
-exch = RabbitExchange(amqp_conf['nova_exchange_name'], type=ExchangeType.TOPIC)
+exch = RabbitExchange(amqp_conf['nova_exchange_name'], type=ExchangeType.TOPIC, durable=True)
 nova_queue = RabbitQueue(
     amqp_conf['consumer_queue_name'],
     auto_delete=False,
@@ -41,7 +46,7 @@ async def handle_nova_event(data, logger: Logger, msg: RabbitMessage):
     if event_type is not None:
         nova_data = oslo_message.get("payload").get("nova_object.data")
         instance_uuid = nova_data.get("uuid")
-        logger.info(f"Event {event_type} received")
+        logger.info(f"Event {event_type} for instance {instance_uuid} received")
 
         await kafka_broker.publish(
             oslo_message, key=instance_uuid.encode("utf-8"),
