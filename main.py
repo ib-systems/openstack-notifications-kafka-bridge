@@ -20,6 +20,8 @@ config = configparser.ConfigParser()
 config.read(known_args.config_file)
 kafka_conf = config["kafka"]
 amqp_conf = config["amqp"]
+ignored_events = amqp_conf.get('ignore_events', "").split(',')
+print("AMQP", ignored_events)
 kafka_broker = KafkaBroker(kafka_conf["bootstrap_servers"])
 rabbit_broker = RabbitBroker(
     (
@@ -30,7 +32,7 @@ rabbit_broker = RabbitBroker(
     virtualhost=amqp_conf["vhost"],
 )
 
-exch = RabbitExchange(amqp_conf['nova_exchange_name'], type=ExchangeType.TOPIC, durable=True)
+exch = RabbitExchange(amqp_conf['nova_exchange_name'], type=ExchangeType.TOPIC, passive=True)
 nova_queue = RabbitQueue(
     amqp_conf['consumer_queue_name'],
     auto_delete=False,
@@ -44,16 +46,23 @@ async def handle_nova_event(data, logger: Logger, msg: RabbitMessage):
     oslo_message = json.loads(data.get("oslo.message"))
     event_type = oslo_message.get("event_type")
     if event_type is not None:
-        nova_data = oslo_message.get("payload").get("nova_object.data")
-        instance_uuid = nova_data.get("uuid")
-        logger.info(f"Event {event_type} for instance {instance_uuid} received")
+        if event_type not in ignored_events:
+            nova_data = oslo_message.get("payload").get("nova_object.data")
+            instance_uuid = nova_data.get("uuid")
+            logger.info(f"Event {event_type} for instance {instance_uuid} received")
+            try:
 
-        await kafka_broker.publish(
-            oslo_message, key=instance_uuid.encode("utf-8"),
-            topic=nova_data.get("tenant_id"),
-            headers={"event-name": event_type},
-        )
-    await msg.ack()
+                await kafka_broker.publish(
+                    oslo_message, key=instance_uuid.encode("utf-8"),
+                    topic=nova_data.get("tenant_id"),
+                    headers={"event-name": event_type},
+                )
+                await msg.ack()
+            except Exception:
+                pass
+        else:
+            logger.info(f"Event {event_type} is in list of ignored event types")
+            await msg.ack()
 
 
 @app.on_startup

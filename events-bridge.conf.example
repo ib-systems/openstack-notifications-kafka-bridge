@@ -9,3 +9,5 @@ username=
 password=
 nova_exchange_name=nova
 consumer_queue_name=
+# instance.exists could be ignored
+ignore_events=instance.exists
