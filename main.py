@@ -53,7 +53,8 @@ async def handle_nova_event(data, logger: Logger, msg: RabbitMessage):
             try:
 
                 await kafka_broker.publish(
-                    oslo_message, key=instance_uuid.encode("utf-8"),
+                    oslo_message, 
+                    key=instance_uuid.encode("utf-8"),
                     topic=nova_data.get("tenant_id"),
                     headers={"event-name": event_type},
                 )
