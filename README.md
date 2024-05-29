@@ -16,5 +16,8 @@ docker compose build
 docker compose up onkb
 ```
 
+# Params
+`--config-file` allows to provide custom config path
+
 ## [airtai/faststream](https://github.com/airtai/faststream) is used here
 FastStream is a powerful and easy-to-use Python framework for building asynchronous services interacting with event streams such as Apache Kafka, RabbitMQ, NATS and Redis.
