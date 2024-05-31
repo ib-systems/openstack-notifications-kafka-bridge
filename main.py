@@ -59,8 +59,9 @@ async def handle_nova_event(data, logger: Logger, msg: RabbitMessage):
                     headers={"event-name": event_type},
                 )
                 await msg.ack()
-            except Exception:
-                pass
+            except Exception as e:
+                logger.info(f"Exception occured, {e}")
+                await msg.nack(requeue=True)
         else:
             logger.info(f"Event {event_type} is in list of ignored event types")
             await msg.ack()
