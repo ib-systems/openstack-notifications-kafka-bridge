@@ -21,3 +21,16 @@ docker compose up onkb
 
 ## [airtai/faststream](https://github.com/airtai/faststream) is used here
 FastStream is a powerful and easy-to-use Python framework for building asynchronous services interacting with event streams such as Apache Kafka, RabbitMQ, NATS and Redis.
+
+
+# Notes
+- WIP: There is ability to manually create subscribers that could be used to mount to multiple nova_cell* vhosts in case of large deployments;
+  ```python
+  subscriber = broker.subscriber("dynamic")
+  subscriber(handler_method)
+  ...
+  broker.setup_subscriber(subscriber)
+  await subscriber.start()
+  ...
+  await subscriber.close()
+  ```
